@@ -11,6 +11,7 @@ our %SPEC;
 
 $SPEC{http_tiny} = {
     v => 1.1,
+    summary => 'Perform request with HTTP::Tiny',
     args => {
         url => {
             schema => 'str*',
