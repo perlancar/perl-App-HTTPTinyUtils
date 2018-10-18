@@ -7,7 +7,36 @@ use 5.010001;
 use strict;
 use warnings;
 
+use Perinci::Sub::Util qw(gen_modified_sub);
+
 our %SPEC;
+
+sub _http_tiny {
+    my ($class, %args) = @_;
+
+    (my $class_pm = "$class.pm") =~ s!::!/!g;
+    require $class_pm;
+
+    my $url = $args{url};
+    my $method = $args{method} // 'GET';
+
+    my %opts;
+
+    if (defined $args{content}) {
+        $opts{content} = $args{content};
+    } elsif (!(-t STDIN)) {
+        local $/;
+        $opts{content} = <STDIN>;
+    }
+
+    my $res = $class->new->request($method, $url, \%opts);
+
+    if ($args{raw}) {
+        [200, "OK", $res];
+    } else {
+        [$res->{status}, $res->{reason}, $res->{content}];
+    }
+}
 
 $SPEC{http_tiny} = {
     v => 1.1,
@@ -45,29 +74,20 @@ $SPEC{http_tiny} = {
     },
 };
 sub http_tiny {
-    require HTTP::Tiny;
-
-    my %args = @_;
-    my $url = $args{url};
-    my $method = $args{method} // 'GET';
-
-    my %opts;
-
-    if (defined $args{content}) {
-        $opts{content} = $args{content};
-    } elsif (!(-t STDIN)) {
-        local $/;
-        $opts{content} = <STDIN>;
-    }
-
-    my $res = HTTP::Tiny->new->request($method, $url, \%opts);
-
-    if ($args{raw}) {
-        [200, "OK", $res];
-    } else {
-        [$res->{status}, $res->{reason}, $res->{content}];
-    }
+    _http_tiny('HTTP::Tiny', @_);
 }
+
+gen_modified_sub(
+    output_name => 'http_tiny_cache',
+    base_name   => 'http_tiny',
+    description => <<'_',
+
+Like `http_tiny`, but uses <pm:HTTP::Tiny::Cache> instead of <pm:HTTP::Tiny>.
+See the documentation of HTTP::Tiny::Cache on how to set cache period.
+
+_
+    output_code => sub { _http_tiny('HTTP::Tiny::Cache', @_) },
+);
 
 1;
 # ABSTRACT: Command-line utilities related to HTTP::Tiny
