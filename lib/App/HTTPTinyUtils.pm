@@ -81,6 +81,7 @@ sub http_tiny {
 gen_modified_sub(
     output_name => 'http_tiny_cache',
     base_name   => 'http_tiny',
+    summary => 'Perform request with HTTP::Tiny::Cache',
     description => <<'_',
 
 Like `http_tiny`, but uses <pm:HTTP::Tiny::Cache> instead of <pm:HTTP::Tiny>.
