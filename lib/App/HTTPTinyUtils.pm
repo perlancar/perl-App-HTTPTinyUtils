@@ -125,6 +125,41 @@ _
     output_code => sub { _http_tiny('HTTP::Tiny::Retry', @_) },
 );
 
+gen_modified_sub(
+    output_name => 'http_tiny_customretry',
+    base_name   => 'http_tiny',
+    summary => 'Perform request with HTTP::Tiny::CustomRetry',
+    description => <<'_',
+
+Like `http_tiny`, but uses <pm:HTTP::Tiny::CustomRetry> instead of
+<pm:HTTP::Tiny>. See the documentation of HTTP::Tiny::CustomRetry for more
+details.
+
+_
+    modify_meta => sub {
+        my $meta = shift;
+
+        $meta->{args}{attributes}{cmdline_aliases} = {
+            retry_strategy => {
+                summary => 'Choose backoff strategy',
+                code => sub { $_[0]{attributes}{retry_strategy} = $_[1] },
+                # disabled, unrecognized for now
+                _completion => sub {
+                    require Complete::Module;
+
+                    my %args = @_;
+
+                    Complete::Module::complete_module(
+                        word => $args{word},
+                        ns_prefix => 'Algorithm::Backoff',
+                    );
+                },
+            },
+        };
+    },
+    output_code => sub { _http_tiny('HTTP::Tiny::CustomRetry', @_) },
+);
+
 1;
 # ABSTRACT: Command-line utilities related to HTTP::Tiny
 
