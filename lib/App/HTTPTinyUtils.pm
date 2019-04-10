@@ -29,7 +29,8 @@ sub _http_tiny {
         $opts{content} = <STDIN>;
     }
 
-    my $res = $class->new->request($method, $url, \%opts);
+    my $res = $class->new(%{ $args{attributes} // {} })
+        ->request($method, $url, \%opts);
 
     if ($args{raw}) {
         [200, "OK", $res];
@@ -57,6 +58,12 @@ $SPEC{http_tiny} = {
                 post   => {summary => 'Shortcut for --method POST'  , is_flag=>1, code=>sub { $_[0]{method} = 'POST'   } },
                 put    => {summary => 'Shortcut for --method PUT'   , is_flag=>1, code=>sub { $_[0]{method} = 'PUT'    } },
             },
+        },
+        attributes => {
+            'x.name.is_plural' => 1,
+            'x.name.singular' => 'attribute',
+            summary => 'Pass attributes to HTTP::Tiny constructor',
+            schema => ['hash*', each_key => 'str*'],
         },
         headers => {
             schema => ['hash*', of=>'str*'],
@@ -89,6 +96,33 @@ See the documentation of HTTP::Tiny::Cache on how to set cache period.
 
 _
     output_code => sub { _http_tiny('HTTP::Tiny::Cache', @_) },
+);
+
+gen_modified_sub(
+    output_name => 'http_tiny_retry',
+    base_name   => 'http_tiny',
+    summary => 'Perform request with HTTP::Tiny::Retry',
+    description => <<'_',
+
+Like `http_tiny`, but uses <pm:HTTP::Tiny::Retry> instead of <pm:HTTP::Tiny>.
+See the documentation of HTTP::Tiny::Retry for more details.
+
+_
+    modify_meta => sub {
+        my $meta = shift;
+
+        $meta->{args}{attributes}{cmdline_aliases} = {
+            retries => {
+                summary => 'Number of retries',
+                code => sub { $_[0]{attributes}{retries} = $_[1] },
+            },
+            retry_delay => {
+                summary => 'Retry delay',
+                code => sub { $_[0]{attributes}{retry_delay} = $_[1] },
+            },
+        };
+    },
+    output_code => sub { _http_tiny('HTTP::Tiny::Retry', @_) },
 );
 
 1;
