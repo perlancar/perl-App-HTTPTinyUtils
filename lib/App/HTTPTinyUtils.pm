@@ -99,6 +99,19 @@ _
 );
 
 gen_modified_sub(
+    output_name => 'http_tiny_plugin',
+    base_name   => 'http_tiny',
+    summary => 'Perform request with HTTP::Tiny::Plugin',
+    description => <<'_',
+
+Like `http_tiny`, but uses <pm:HTTP::Tiny::Plugin> instead of <pm:HTTP::Tiny>.
+See the documentation of HTTP::Tiny::Plugin for more details.
+
+_
+    output_code => sub { _http_tiny('HTTP::Tiny::Plugin', @_) },
+);
+
+gen_modified_sub(
     output_name => 'http_tiny_retry',
     base_name   => 'http_tiny',
     summary => 'Perform request with HTTP::Tiny::Retry',
