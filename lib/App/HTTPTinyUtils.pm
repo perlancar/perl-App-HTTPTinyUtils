@@ -17,36 +17,49 @@ sub _http_tiny {
     (my $class_pm = "$class.pm") =~ s!::!/!g;
     require $class_pm;
 
-    my $url = $args{url};
+    my $res;
     my $method = $args{method} // 'GET';
+    for my $i (0 .. $#{ $args{urls} }) {
+        my $url = $args{urls}[$i];
+        my $is_last_url = $i == $#{ $args{urls} };
 
-    my %opts;
+        my %opts;
+        if (defined $args{content}) {
+            $opts{content} = $args{content};
+        } elsif (!(-t STDIN)) {
+            local $/;
+            $opts{content} = <STDIN>;
+        }
 
-    if (defined $args{content}) {
-        $opts{content} = $args{content};
-    } elsif (!(-t STDIN)) {
-        local $/;
-        $opts{content} = <STDIN>;
+        my $res0 = $class->new(%{ $args{attributes} // {} })
+            ->request($method, $url, \%opts);
+        my $success = $res0->{success};
+
+        if ($args{raw}) {
+            $res = [200, "OK", $res0];
+        } else {
+            $res = [$res0->{status}, $res0->{reason}, $res0->{content}];
+            print $res0->{content} unless $is_last_url;
+        }
+
+        unless ($success) {
+            last unless $args{ignore_errors};
+        }
     }
-
-    my $res = $class->new(%{ $args{attributes} // {} })
-        ->request($method, $url, \%opts);
-
-    if ($args{raw}) {
-        [200, "OK", $res];
-    } else {
-        [$res->{status}, $res->{reason}, $res->{content}];
-    }
+    $res;
 }
 
 $SPEC{http_tiny} = {
     v => 1.1,
-    summary => 'Perform request with HTTP::Tiny',
+    summary => 'Perform request(s) with HTTP::Tiny',
     args => {
-        url => {
-            schema => 'str*',
+        urls => {
+            'x.name.is_plural' => 1,
+            'x.name.singular' => 'url',
+            schema => ['array*', of=>'str*'],
             req => 1,
             pos => 0,
+            slurpy => 1,
         },
         method => {
             schema => ['str*', match=>qr/\A[A-Z]+\z/],
@@ -75,6 +88,18 @@ $SPEC{http_tiny} = {
         },
         raw => {
             schema => 'bool*',
+        },
+        ignore_errors => {
+            summary => 'Ignore errors',
+            description => <<'_',
+
+Normally, when given multiple URLs, the utility will exit after the first
+non-success response. With `ignore_errors` set to true, will just log the error
+and continue. Will return with the last error response.
+
+_
+            schema => 'bool*',
+            cmdline_aliases => {i=>{}},
         },
         # XXX option: agent
         # XXX option: timeout
