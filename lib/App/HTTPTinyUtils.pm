@@ -113,7 +113,7 @@ sub http_tiny {
 gen_modified_sub(
     output_name => 'http_tiny_cache',
     base_name   => 'http_tiny',
-    summary => 'Perform request with HTTP::Tiny::Cache',
+    summary => 'Perform request(s) with HTTP::Tiny::Cache',
     description => <<'_',
 
 Like `http_tiny`, but uses <pm:HTTP::Tiny::Cache> instead of <pm:HTTP::Tiny>.
@@ -126,7 +126,7 @@ _
 gen_modified_sub(
     output_name => 'http_tiny_plugin',
     base_name   => 'http_tiny',
-    summary => 'Perform request with HTTP::Tiny::Plugin',
+    summary => 'Perform request(s) with HTTP::Tiny::Plugin',
     description => <<'_',
 
 Like `http_tiny`, but uses <pm:HTTP::Tiny::Plugin> instead of <pm:HTTP::Tiny>.
@@ -139,7 +139,7 @@ _
 gen_modified_sub(
     output_name => 'http_tiny_retry',
     base_name   => 'http_tiny',
-    summary => 'Perform request with HTTP::Tiny::Retry',
+    summary => 'Perform request(s) with HTTP::Tiny::Retry',
     description => <<'_',
 
 Like `http_tiny`, but uses <pm:HTTP::Tiny::Retry> instead of <pm:HTTP::Tiny>.
@@ -166,7 +166,7 @@ _
 gen_modified_sub(
     output_name => 'http_tiny_customretry',
     base_name   => 'http_tiny',
-    summary => 'Perform request with HTTP::Tiny::CustomRetry',
+    summary => 'Perform request(s) with HTTP::Tiny::CustomRetry',
     description => <<'_',
 
 Like `http_tiny`, but uses <pm:HTTP::Tiny::CustomRetry> instead of
