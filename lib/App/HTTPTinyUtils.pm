@@ -1,11 +1,14 @@
 package App::HTTPTinyUtils;
 
+# AUTHORITY
 # DATE
+# DIST
 # VERSION
 
 use 5.010001;
 use strict;
 use warnings;
+use Log::ger;
 
 use Perinci::Sub::Util qw(gen_modified_sub);
 
@@ -31,6 +34,7 @@ sub _http_tiny {
             $opts{content} = <STDIN>;
         }
 
+        log_trace "Request: $method $url ...";
         my $res0 = $class->new(%{ $args{attributes} // {} })
             ->request($method, $url, \%opts);
         my $success = $res0->{success};
@@ -196,6 +200,72 @@ _
         };
     },
     output_code => sub { _http_tiny('HTTP::Tiny::CustomRetry', @_) },
+);
+
+gen_modified_sub(
+    output_name => 'http_tiny_plugin_every',
+    base_name   => 'http_tiny',
+    summary => 'Perform request(s) with HTTP::Tiny::Plugin every N seconds, log result in a directory',
+    description => <<'_',
+
+Like `http_tiny_plugin`, but perform the request every N seconds and log the
+result in a directory.
+
+_
+    modify_meta => sub {
+        my $meta = shift;
+        $meta->{args}{every} = {
+            schema => 'duration*',
+            req => 1,
+        };
+        $meta->{args}{dir} = {
+            schema => 'dirname*',
+            req => 1,
+        };
+    },
+    output_code => sub {
+        require Log::ger::App;
+
+        my %args = @_;
+
+        my $log_dump = Log::ger->get_logger(category => 'Dump');
+
+        no warnings 'once';
+        shift @Log::ger::App::IMPORT_ARGS;
+        #log_trace("Existing Log::ger::App import: %s", \@Log::ger::App::IMPORT_ARGS);
+        Log::ger::App->import(
+            @Log::ger::App::IMPORT_ARGS,
+            outputs => {
+                DirWriteRotate => {
+                    conf => {
+                        path => $args{dir},
+                        max_size => 10_000,
+                    },
+                    level => 'off',
+                    category_level => {
+                        Dump => 'info',
+                    },
+                },
+            },
+            extra_conf => {
+                category_level => {
+                    Dump => 'off',
+                },
+            },
+        );
+
+        while (1) {
+            my $res = _http_tiny('HTTP::Tiny::Plugin', %args);
+            if ($res->[0] !~ /^(200|304)/) {
+                log_warn "Failed: $res->[1], skipped saving to directory";
+            } else {
+                $log_dump->info($res->[2]);
+            }
+            log_trace "Sleeping %s second(s) ...", $args{every};
+            sleep $args{every};
+        }
+        [200];
+    },
 );
 
 1;
