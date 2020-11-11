@@ -1,3 +1,8 @@
+0.007   2020-11-11  Released-By: PERLANCAR; Urgency: medium
+
+	- Add CLI: http-tiny-plugin-every.
+
+
 0.006   2019-04-15  Released-By: PERLANCAR
 
 	- Accept multiple URLs, add option --ignore-errors (-i).
