@@ -239,7 +239,7 @@ _
                 DirWriteRotate => {
                     conf => {
                         path => $args{dir},
-                        max_size => 10_000,
+                        max_files => 10_000,
                     },
                     level => 'off',
                     category_level => {
