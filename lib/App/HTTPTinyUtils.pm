@@ -1,16 +1,16 @@
 package App::HTTPTinyUtils;
 
-# AUTHORITY
-# DATE
-# DIST
-# VERSION
-
 use 5.010001;
 use strict;
 use warnings;
 use Log::ger;
 
 use Perinci::Sub::Util qw(gen_modified_sub);
+
+# AUTHORITY
+# DATE
+# DIST
+# VERSION
 
 our %SPEC;
 
@@ -95,13 +95,13 @@ $SPEC{http_tiny} = {
         },
         ignore_errors => {
             summary => 'Ignore errors',
-            description => <<'_',
+            description => <<'MARKDOWN',
 
 Normally, when given multiple URLs, the utility will exit after the first
 non-success response. With `ignore_errors` set to true, will just log the error
 and continue. Will return with the last error response.
 
-_
+MARKDOWN
             schema => 'bool*',
             cmdline_aliases => {i=>{}},
         },
@@ -118,12 +118,12 @@ gen_modified_sub(
     output_name => 'http_tiny_cache',
     base_name   => 'http_tiny',
     summary => 'Perform request(s) with HTTP::Tiny::Cache',
-    description => <<'_',
+    description => <<'MARKDOWN',
 
 Like `http_tiny`, but uses <pm:HTTP::Tiny::Cache> instead of <pm:HTTP::Tiny>.
 See the documentation of HTTP::Tiny::Cache on how to set cache period.
 
-_
+MARKDOWN
     output_code => sub { _http_tiny('HTTP::Tiny::Cache', @_) },
 );
 
@@ -131,12 +131,12 @@ gen_modified_sub(
     output_name => 'http_tiny_plugin',
     base_name   => 'http_tiny',
     summary => 'Perform request(s) with HTTP::Tiny::Plugin',
-    description => <<'_',
+    description => <<'MARKDOWN',
 
 Like `http_tiny`, but uses <pm:HTTP::Tiny::Plugin> instead of <pm:HTTP::Tiny>.
 See the documentation of HTTP::Tiny::Plugin for more details.
 
-_
+MARKDOWN
     output_code => sub { _http_tiny('HTTP::Tiny::Plugin', @_) },
 );
 
@@ -144,12 +144,12 @@ gen_modified_sub(
     output_name => 'http_tiny_retry',
     base_name   => 'http_tiny',
     summary => 'Perform request(s) with HTTP::Tiny::Retry',
-    description => <<'_',
+    description => <<'MARKDOWN',
 
 Like `http_tiny`, but uses <pm:HTTP::Tiny::Retry> instead of <pm:HTTP::Tiny>.
 See the documentation of HTTP::Tiny::Retry for more details.
 
-_
+MARKDOWN
     modify_meta => sub {
         my $meta = shift;
 
@@ -171,13 +171,13 @@ gen_modified_sub(
     output_name => 'http_tiny_customretry',
     base_name   => 'http_tiny',
     summary => 'Perform request(s) with HTTP::Tiny::CustomRetry',
-    description => <<'_',
+    description => <<'MARKDOWN',
 
 Like `http_tiny`, but uses <pm:HTTP::Tiny::CustomRetry> instead of
 <pm:HTTP::Tiny>. See the documentation of HTTP::Tiny::CustomRetry for more
 details.
 
-_
+MARKDOWN
     modify_meta => sub {
         my $meta = shift;
 
@@ -206,12 +206,12 @@ gen_modified_sub(
     output_name => 'http_tiny_plugin_every',
     base_name   => 'http_tiny',
     summary => 'Perform request(s) with HTTP::Tiny::Plugin every N seconds, log result in a directory',
-    description => <<'_',
+    description => <<'MARKDOWN',
 
 Like `http_tiny_plugin`, but perform the request every N seconds and log the
 result in a directory.
 
-_
+MARKDOWN
     modify_meta => sub {
         my $meta = shift;
         $meta->{args}{every} = {
@@ -265,6 +265,30 @@ _
             sleep $args{every};
         }
         [200];
+    },
+);
+
+gen_modified_sub(
+    output_name => 'http_tinyish',
+    base_name   => 'http_tiny',
+    summary => 'Perform request(s) with HTTP::Tinyish',
+    description => <<'MARKDOWN',
+
+Like `http_tiny`, but uses <pm:HTTP::Tinyish> instead of <pm:HTTP::Tiny>.
+See the documentation of HTTP::Tinyish for more details.
+
+Observes `HTTP_TINYISH_PREFERRED_BACKEND` to set
+`$HTTP::Tinyish::PreferredBackend`. For example:
+
+    % HTTP_TINYISH_PREFERRED_BACKEND=HTTP::Tinyish::Curl http-tinyish https://foo/
+
+MARKDOWN
+    output_code => sub {
+        require HTTP::Tinyish;
+        if (defined $ENV{HTTP_TINYISH_PREFERRED_BACKEND}) {
+            $HTTP::Tinyish::PreferredBackend = $ENV{HTTP_TINYISH_PREFERRED_BACKEND};
+        }
+        _http_tiny('HTTP::Tinyish', @_);
     },
 );
 
